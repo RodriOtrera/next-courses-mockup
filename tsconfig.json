@@ -11,6 +11,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // scripts/ runs under `node --experimental-strip-types`, which requires
+    // explicit .ts extensions on relative imports. Permitted, not required, so
+    // app code is unaffected.
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
