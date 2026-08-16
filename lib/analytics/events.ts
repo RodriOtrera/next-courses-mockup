@@ -17,6 +17,20 @@ export type PaymentRail = "mercadopago" | "paypal";
 /** Where an entitlement came from. `manual` is an admin grant, not a sale. */
 export type EnrollmentSource = PaymentRail | "manual";
 
+/** Every third party that posts signed webhooks at us. */
+export type WebhookRail = PaymentRail | "resend";
+
+/** Which surface collected a marketing opt-in — mirrors `emailConsentSourceValues`. */
+export type ConsentSource = "signup" | "account" | "footer" | "reconsent" | "preferences";
+
+/** Cohorts a broadcast can target — mirrors `broadcastCohortValues`. */
+export type BroadcastAudience =
+  | "allUsers"
+  | "usersWithCourses"
+  | "usersWithEbookProgram"
+  | "usersWithCoaching"
+  | "test";
+
 interface ProductProps {
   product_type: ProductType;
   product_id: string;
@@ -68,8 +82,10 @@ export interface AnalyticsEventMap {
     received?: string;
     reason: string;
   };
-  webhook_signature_invalid: { rail: PaymentRail };
-  webhook_rejected: { rail: PaymentRail; status?: string; reason: string };
+  /** `resend` is not a payment rail, but a forged webhook is the same class of
+   * event and belongs on the same dashboard as the payment ones. */
+  webhook_signature_invalid: { rail: WebhookRail };
+  webhook_rejected: { rail: WebhookRail; status?: string; reason: string };
 
   // ---- Activation ---------------------------------------------------------
   otp_requested: { flow: "login" | "signup" };
@@ -108,6 +124,35 @@ export interface AnalyticsEventMap {
   };
   /** Emitted once per crossing, never on a re-render — the ledger guarantees it. */
   level_up: { from: number; to: number; total_xp: number };
+
+  // ---- Email consent & broadcasts -----------------------------------------
+  /**
+   * A confirmation email went out. Pairs with `email_consent_granted` to give
+   * the double opt-in conversion rate, which is the number that tells you
+   * whether the confirmation copy is working.
+   */
+  email_consent_requested: { source: ConsentSource };
+  /**
+   * Consent recorded. `double_opt_in` distinguishes the two legitimate paths:
+   * `false` is an authenticated user whose mailbox BetterAuth's OTP already
+   * proved, `true` is a confirmation link that was clicked.
+   */
+  email_consent_granted: { source: ConsentSource; double_opt_in: boolean };
+  email_consent_revoked: { source: ConsentSource };
+  /** Resend told us a contact unsubscribed, bounced or complained. */
+  email_contact_synced: {
+    reason: "unsubscribed" | "resubscribed" | "bounced" | "complained" | "deleted";
+  };
+  /**
+   * A broadcast was dispatched. `recipient_count` is the snapshot at send time —
+   * cohorts drift, so it cannot be recomputed later.
+   */
+  broadcast_sent: {
+    cohort: BroadcastAudience;
+    recipient_count: number;
+    scheduled: boolean;
+  };
+  broadcast_failed: { cohort: BroadcastAudience; reason: string };
 }
 
 export type AnalyticsEvent = keyof AnalyticsEventMap;

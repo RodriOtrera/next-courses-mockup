@@ -1,5 +1,5 @@
-import { InferSelectModel, relations } from "drizzle-orm";
-import { index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { InferSelectModel, relations, sql } from "drizzle-orm";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from 'zod';
 import { users } from "./auth_schema";
@@ -26,12 +26,12 @@ export const DEFAULT_XP_CONFIG = {
     course_xp: 200,
 } as const;
 
-export const xp_config = pgTable("xp_config", {
+export const xp_config = sqliteTable("xp_config", {
     id: text('id').default(XP_CONFIG_ID).primaryKey(),
     lesson_xp: integer('lesson_xp').default(DEFAULT_XP_CONFIG.lesson_xp).notNull(),
     module_xp: integer('module_xp').default(DEFAULT_XP_CONFIG.module_xp).notNull(),
     course_xp: integer('course_xp').default(DEFAULT_XP_CONFIG.course_xp).notNull(),
-    updated_at: timestamp('updated_at').defaultNow(),
+    updated_at: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 })
 
 export const xpSourceValues = ['lesson', 'module', 'course'] as const;
@@ -49,10 +49,10 @@ export type XpSource = z.infer<typeof xpSource>;
  * `uniqueAward` is what makes the whole design safe. Awards are written with
  * `.onConflictDoNothing()`, so a re-opened lesson, a double-fired effect, or a
  * retried request can never pay twice. That matters more than usual here: the
- * Neon HTTP driver has no transaction support, so a unique index is the only
- * concurrency primitive available.
+ * libSQL remote client has no interactive transactions, so a unique index is
+ * the only concurrency primitive available.
  */
-export const xp_ledger = pgTable("xp_ledger", {
+export const xp_ledger = sqliteTable("xp_ledger", {
     id: text('id').primaryKey(),
     user_id: text('user_id').notNull(),
     course_id: text('course_id').notNull(),
@@ -65,7 +65,7 @@ export const xp_ledger = pgTable("xp_ledger", {
      * learners who earned it under the old value.
      */
     amount: integer('amount').notNull(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 }, (t) => ({
     award: uniqueIndex('xp_ledger_award_idx').on(t.user_id, t.source, t.source_id),
     byUser: index('xp_ledger_user_idx').on(t.user_id),

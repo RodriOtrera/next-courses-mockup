@@ -1,9 +1,9 @@
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import z from 'zod';
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { InferSelectModel } from "drizzle-orm";
 
-export const home_testimonials = pgTable("home_testimonials", {
+export const home_testimonials = sqliteTable("home_testimonials", {
     id: text("id").primaryKey(),
     user_name: text("user_name").notNull(),
     content: text("content").notNull(),

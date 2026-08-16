@@ -147,14 +147,19 @@ The global `app.onError` in `lib/hono/server.ts` converts any thrown `Error` int
 
 ## Runtime
 
-`app/api/v1/[[...route]]/route.ts` sets `export const runtime = "nodejs"`. The courses actions use `@neondatabase/serverless` (works on both node and edge) but several wrapped actions rely on `@mux/mux-node`, `nodemailer`, etc. that require node. Keep this as `nodejs` unless you split edge-safe endpoints into a separate group.
+`app/api/v1/[[...route]]/route.ts` sets `export const runtime = "nodejs"`. The courses actions use `@libsql/client` (works on both node and edge) but several wrapped actions rely on `@mux/mux-node` and on `node:crypto` in the email consent flow, which require node. Keep this as `nodejs` unless you split edge-safe endpoints into a separate group.
 
 ## Env vars
 
 | Var | Purpose |
 |---|---|
-| `DATABASE_URL` | Neon Postgres connection. |
-| `RESEND_FROM`, `RESEND_API_KEY` | OTP delivery via better-auth. |
+| `DATABASE_URL` | Turso (libSQL) database URL, `libsql://…`. |
+| `DATABASE_AUTH_TOKEN` | Turso auth token. Required for any non-local `DATABASE_URL`. |
+| `RESEND_FROM`, `RESEND_API_KEY` | All outbound mail: OTP, transactional and broadcasts. `AUTH_RESEND_KEY` is still read as a fallback. |
+| `RESEND_REPLY_TO` | Optional reply-to for outbound mail. |
+| `RESEND_WEBHOOK_SECRET` | Verifies `/api/webhook/resend`. Required — the route 503s without it, and unsubscribes stop syncing. |
+| `ADMIN_EMAILS` | Comma-separated allowlist gating `/dashboard/email` and every broadcast action. Fails closed. |
+| `CRON_SECRET` | Bearer token for the `vercel.json` cron routes. Mandatory for `/api/cron/email-sync`. |
 | `NEXT_PUBLIC_APP_URL` | Optional explicit base URL for server-side axios. |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | better-auth session signing + CORS. |
 

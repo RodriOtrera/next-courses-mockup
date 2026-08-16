@@ -1,8 +1,8 @@
 import { InferSelectModel } from "drizzle-orm";
-import { integer, real, pgTable, text } from "drizzle-orm/pg-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 
-export const card_schema = pgTable("card", {
+export const card_schema = sqliteTable("card", {
     id: text('id').default("noID").primaryKey(),
     price_dollars: real("price_dollars").notNull(),
     price_pesos: integer("price_pesos").notNull(),

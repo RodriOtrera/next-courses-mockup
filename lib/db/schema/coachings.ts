@@ -1,9 +1,9 @@
 import { InferSelectModel, relations, sql } from "drizzle-orm";
-import { jsonb, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { subscription } from "./subscrition_schema";
 import { createInsertSchema } from "drizzle-zod";
 
-export const coachings = pgTable('coachings', {
+export const coachings = sqliteTable('coachings', {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     order: integer('order').notNull(),
@@ -21,7 +21,7 @@ export const coachingRelation = relations(coachings, ({ many }) => ({
 }))
 
 
-export const coaching_items_2 = pgTable('coaching_items', {
+export const coaching_items_2 = sqliteTable('coaching_items', {
     id: text('id').primaryKey(),
     text: text('text').notNull(),
     coaching_id: text('coaching_id').notNull(),
@@ -38,9 +38,9 @@ export const coaching_items_2_relations = relations(coaching_items_2, ({ one }) 
 
 
 
-export const salas = pgTable('salas', {
+export const salas = sqliteTable('salas', {
     id: text('id').primaryKey(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     img_url: text('img_url').notNull(),
     name: text('name').notNull(),
     coaching_id: text('coaching_id').notNull(),
@@ -54,9 +54,9 @@ export const salasRelation = relations(salas, ({ one, many }) => ({
     temas: many(salasTemas)
 }))
 
-export const salasTemas = pgTable('salas_temas', {
+export const salasTemas = sqliteTable('salas_temas', {
     id: text('id').primaryKey(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     name: text('name').notNull(),
     sala_id: text('sala_id').notNull(),
 })
@@ -67,9 +67,9 @@ export const salasTemasRelation = relations(salasTemas, ({ one, many }) => ({
 
 }))
 
-export const salasItems = pgTable('salas_items', {
+export const salasItems = sqliteTable('salas_items', {
     id: text('id').primaryKey(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     name: text('name').notNull(),
     link: text('link').notNull(),
     type: text('type', { enum: ['video', 'pdf'] }).notNull(),

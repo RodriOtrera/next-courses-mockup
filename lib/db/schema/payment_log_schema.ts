@@ -1,12 +1,12 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { users } from "./auth_schema";
 
-export const payment_log_schema = pgTable("payment_log", {
+export const payment_log_schema = sqliteTable("payment_log", {
     id: text("id").primaryKey(),
     payment_id: text('payment_id'),
     user_id: text('user_id'),
-    created_at: timestamp("updated_at").defaultNow(),
+    created_at: integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`),
     paid_amount: text('paid_amount'),
     // `paid_amount` is text and has to be run through parseAmount() before it
     // can be summed. This holds the same value in minor units as an integer so

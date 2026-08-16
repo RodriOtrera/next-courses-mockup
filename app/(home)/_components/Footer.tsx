@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Instagram, Phone, Youtube, ArrowUpRight, Mail } from "lucide-react";
+import NewsletterForm from "@/components/email/NewsletterForm";
 
 const socialLinks = [
   {
@@ -65,6 +66,12 @@ const Footer = () => {
                   <social.icon className="w-[18px] h-[18px] text-neutral-500 group-hover:text-red-400 transition-colors duration-300" />
                 </a>
               ))}
+            </div>
+
+            {/* Double opt-in capture. The address is unverified here, so this is
+                the one path that mails a confirmation link before anything else. */}
+            <div className="pt-4">
+              <NewsletterForm />
             </div>
           </div>
 
@@ -135,9 +142,12 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} Axel Dubin. Todos los derechos
             reservados.
           </p>
-          <p className="text-xs text-neutral-700">
-            Atleta e instructor profesional
-          </p>
+          <Link
+            href="/email/preferencias"
+            className="text-xs text-neutral-700 transition-colors hover:text-neutral-500"
+          >
+            Preferencias de correo
+          </Link>
         </div>
       </div>
     </footer>

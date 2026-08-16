@@ -13,6 +13,8 @@ import { MyCoursesClient } from "../MyCoursesAndCoachingClient";
 import { getUserXp } from "@/lib/db/actions/gamification/award_xp";
 import XpMeter from "@/components/gamification/XpMeter";
 import { noindexMetadata } from "@/lib/seo/private-metadata";
+import EmailPreferencesToggle from "@/components/email/EmailPreferencesToggle";
+import { getConsentByEmail } from "@/lib/email/consent";
 
 export const metadata = noindexMetadata("Mi cuenta");
 
@@ -20,11 +22,12 @@ export default async function MiCuentaProductosPage() {
   const session = await currentUser();
   if (session === null) return redirect("/");
 
-  const [ebooks, programs, courseProgress, totalXp] = await Promise.all([
+  const [ebooks, programs, courseProgress, totalXp, consent] = await Promise.all([
     getMyEbooks(session.id),
     getMyPrograms(session.id),
     getUserCourseProgress(session.id),
     getUserXp(session.id),
+    getConsentByEmail(session.email),
   ]);
 
   return (
@@ -61,6 +64,11 @@ export default async function MiCuentaProductosPage() {
 
           <XpMeter totalXp={totalXp} variant="full" />
         </div>
+
+        {/* Email preferences — the only editable setting on this page. */}
+        <section className="mb-10 max-w-xl">
+          <EmailPreferencesToggle initialStatus={consent?.status ?? null} />
+        </section>
 
         {/* My courses */}
         <section className="mb-10">

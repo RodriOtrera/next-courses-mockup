@@ -455,7 +455,9 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xp-check-pop {
+  .xp-check-pop,
+  .fade-in-up,
+  .float {
     animation: none;
   }
 }
@@ -486,6 +488,24 @@ html {
   --ep-volt-dim: #a6e02b;
   --ep-line: rgba(255, 255, 255, 0.08);
   --ep-volt-line: rgba(198, 255, 62, 0.22);
+  /* Error states. `-fg` is the lightened tint used for text, since the border
+     colour itself does not carry enough contrast against a dark surface. */
+  --ep-danger: #ec4e39;
+  --ep-danger-fg: #ff9d8c;
+}
+
+/* Chrome paints autofilled inputs on an opaque near-white background, which on
+   these dark surfaces renders the auth forms unreadable the moment a password
+   manager fills them. There is no colour property for it — the inset shadow is
+   the only way to repaint the field. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ep-fg);
+  -webkit-box-shadow: 0 0 0 1000px var(--ep-surface-2) inset;
+  caret-color: var(--ep-fg);
+  /* The transition never completes, which is what keeps the override applied. */
+  transition: background-color 9999s ease-out 0s;
 }
 
 /* Card lift on hover */

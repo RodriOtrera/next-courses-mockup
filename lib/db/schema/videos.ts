@@ -1,12 +1,12 @@
 import { type InferSelectModel, relations, type InferInsertModel, sql } from "drizzle-orm";
 import { semanas } from "./semanas";
-import { pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 
-export const videos = pgTable("videos", {
+export const videos = sqliteTable("videos", {
     id: text('id').primaryKey(),
     title: text("title").notNull(),
-    createdAt: timestamp("createdAt").defaultNow(),
+    createdAt: integer("createdAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
     videoUrl: text('video_url').notNull(),
     semana_id: text("semana_id",).notNull(),
     description: text('Description',).default("")

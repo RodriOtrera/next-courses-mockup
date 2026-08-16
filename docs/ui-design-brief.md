@@ -1,4 +1,4 @@
-cd# UI Design Brief — Course Platform Base
+# UI Design Brief — Course Platform Base
 
 ## 1. Purpose & how to use this document
 
@@ -8,6 +8,8 @@ It describes: every screen and its sections, the design-token system, which UI e
 
 **How to use:** fill in the *Client Brand Inputs* in §2 with the client's brand, then ask for a design that maps those inputs onto the token roles and screen annotations in §4–§6. Everything branded in the current code (previous client "Axel Dubin", calisthenics niche, gold/red/Spartan visuals, Spanish copy) is **placeholder content to be replaced** — see §8.
 
+**If you were handed a `<slug>-brief.md`**, §2 is already answered. That file is generated per customer from the builder's admin console and carries their palette, variants, page content and feature switches. Go to **§10** for where each of its sections lands in this codebase, then use §4–§6 here to understand what you're changing.
+
 **Constraint that shapes everything:** the inputs in §2 are not free-form. They mirror, 1:1, the customization settings the companion builder platform (`next-course-ultimate`) exposes to clients — appearance, component layout variants, and page blocks. A valid design must be **fully expressible in those knobs**; anything outside them becomes one-off hardcoded work.
 
 ---
@@ -15,6 +17,8 @@ It describes: every screen and its sections, the design-token system, which UI e
 ## 2. Client Brand Inputs (fill in before designing)
 
 These fields map directly to the platform's per-project settings tables (`projectAppearance`, `projectComponents`, `projectPages`/`projectPageBlocks`, and the per-page config tables). Fill in the *Chosen* columns with the client's answers.
+
+> The builder's admin console fills these tables for you — its **Export brief** button emits a `<slug>-brief.md` whose §2 mirrors the rows below with every *Chosen* cell answered, plus a `set` / `default` marker so you can tell a real choice from an untouched seed. Fill this in by hand only when working without a generated brief.
 
 ### 2.1 Appearance (platform: `projectAppearance`)
 
@@ -169,15 +173,15 @@ In platform terms (§2.1–2.2): **[P]** = the client's *accent* color (CTA pop)
 |---|---|---|
 | `/` | `app/(home)/page.tsx` | **Stub** — renders only "Mockup Home" on black. **This is the page the design must invent.** |
 
-- **Navbar ⚙** (`app/(home)/_components/Navbar.tsx`) — exists but **is not mounted by any layout** (pages reserve space for it with `pt-16`). Fixed, blur over dark. Left: logo/avatar **[P for logo mark]**. Center links: HOME / PRODUCTOS / COACHING + "MIS CURSOS" dropdown with course progress **[P for active link + progress bars]**. Right: INGRESAR / REGISTRARSE **[P for the register CTA]**. Mobile: hamburger + drawer **[S drawer surface]**. *Platform variants: `classic` / `centered` / `pill` / `banner`.*
-- **Footer ⚙** (`app/(home)/_components/Footer.tsx`) — also unmounted. Brand column + tagline, social icons row **[A on hover]**, navigation links **[M]**, contact column, "Empezar ahora" CTA **[P]**, copyright **[M]**. **[S background, one step above page BG]**. *Platform variants: `columns` / `minimal` / `centered` / `newsletter`.*
+- **Navbar ⚙** (`app/(home)/_components/Navbar.tsx`) — mounted by `app/(home)/layout.tsx`. Fixed, blur over dark. Left: logo/avatar **[P for logo mark]**. Center links: HOME / PRODUCTOS / COACHING + "MIS CURSOS" dropdown with course progress **[P for active link + progress bars]**. Right: INGRESAR / REGISTRARSE **[P for the register CTA]**. Mobile: hamburger + drawer **[S drawer surface]**. *Platform variants: `classic` / `centered` / `pill` / `banner`.*
+- **Footer ⚙** (`app/(home)/_components/Footer.tsx`) — also mounted by `app/(home)/layout.tsx`. Brand column + tagline, social icons row **[A on hover]**, navigation links **[M]**, contact column, "Empezar ahora" CTA **[P]**, copyright **[M]**. **[S background, one step above page BG]**. *Platform variants: `columns` / `minimal` / `centered` / `newsletter`.*
 - **Unused building blocks** ready for the new home page, all in `app/(home)/_components/`: `HeroCarousel` (full-bleed hero **[BG + P CTA]**), `FeaturedProducts` + `CardUI` (product cards **[S cards, P price/CTA]** — currently colored by a hardcoded red/blue/green map in `cardColors.ts`), `StatsStrip` + `Stat` + `AnimatedCounter` (metrics band **[A numbers]**), `TestimonialsMarquee` / `TestimonialsStacked` (social proof **[S cards]**), `CoachingGeneral` / `CoachingVip` (pricing/offer sections — VIP uses gold glow classes `.price-glow`/`.btn-vip` **[A or premium tier color]**), `FlipWords`, `TitleAnimation`, `TextFadeIn`, `BackgroundLines`, `MouseMask` (decorative motion **[A at low opacity]**).
 - **These map to the platform's block system (§2.4):** the home page should be designed as a stack of the nine block types — `intro`/`hero` (≈ HeroCarousel), `stats` (≈ StatsStrip), `features`, `benefits`, `testimonials` (≈ TestimonialsMarquee/Stacked), `pricing` (≈ CoachingGeneral/Vip), `cta` — so client-built pages inherit the design automatically, whatever blocks they enable and in whatever order.
 
 ### 5.2 Course consumption (route group `app/(home)/`)
 
 - **`/courses` ⚙** — public catalog. Page header (title + course count **[M]** — heading/description are client-editable, §2.4), 1/2/3-column grid of course cards: thumbnail, title, duration/modules/rating meta chips **[A icons, M text]**, ARS/USD price **[P]**. Card surface **[S]** with hover lift. Empty state **[M]**. *Platform variants: card layout `card` / `row` / `featured`; card icon (6 options) and rating icon (6 options) — see §2.3. The rating icon choice replaces the hardcoded gold star.*
-- **`/cursos/[id]` ⚙** — course **sales page** (the most designed screen). *Platform page layout: `standard` / `focused`; section headings and FAQ items are client-editable (§2.4).* Sections top→bottom:
+- **`/cursos/[slug]` ⚙** — course **sales page** (the most designed screen). Legacy numeric ids 308-redirect to the slug. *Platform page layout: `standard` / `focused`; section headings and FAQ items are client-editable (§2.4).* Sections top→bottom:
   1. **Hero** (`components/course/backgroundCourse.tsx`) — full-width image background with dark overlay, course title, enroll CTA **[P]**.
   2. **Welcome/tips block** — image + checklist ("Tips para sacarle el máximo provecho… VAMOS CON TODO!") **[S panel, P check icons]**.
   3. **Stats bar** — modules / classes / duration / certification chips with icons (currently red icon chips) **[A chips]**.
@@ -260,7 +264,7 @@ Plus outside CSS: `DashboardCharts.tsx` `PRODUCT_COLORS` array, dashboard layout
 Everything below belongs to the previous client and is **content, not design system** — the new design should specify its replacement:
 
 - **Name/marks:** "Axel Dubin" / "AXEL DUBIN" / "AD" logo (Navbar, Footer, dashboard sidebar "Axel Dubin / ADMIN", diploma).
-- **Domain/metadata:** `axeldubin.com` used as `metadataBase`/OG URL in `app/(home)/cursos/[id]/page.tsx`; root metadata still literally "Create Next App" (`app/layout.tsx`).
+- **Domain/metadata:** ~~`axeldubin.com` baked into `metadataBase`~~ — **fixed.** Site identity now resolves through `lib/seo/site.ts` from `NEXT_PUBLIC_SITE_*` env vars, and root metadata uses `SITE.name`. Set the env block instead (§10); no source edit needed.
 - **Tagline/copy:** "Atleta e instructor de Calistenia profesional…", "VAMOS CON TODO!", motivational calisthenics voice — replace with client tone.
 - **Social/contact:** Instagram/YouTube `@axeel_dubin`, WhatsApp deep links, one hardcoded WhatsApp group invite inside the lesson viewer.
 - **Iconography:** the entire Spartan/Greek SVG set (`components/spartan/*`) is previous-client identity.
@@ -272,15 +276,45 @@ Everything below belongs to the previous client and is **content, not design sys
 ## 9. Known gaps the designer must know
 
 1. **The home page does not exist** — `/` is a one-line stub. The marketing home is a green-field design task; building blocks listed in §5.1 are available but unused.
-2. **Navbar and Footer are built but mounted nowhere** — no layout renders them; public pages compensate with `pt-16`. The design should assume they get mounted in `app/(home)/layout.tsx`.
-3. **Dead navigation targets:** Navbar/Footer link to `/productos`, `/coaching`, `/micuenta` — those routes don't exist yet.
+2. ~~Navbar and Footer mounted nowhere~~ — **fixed.** Both are mounted by `app/(home)/layout.tsx`.
+3. **Dead navigation targets:** `/coaching` (Footer, NavbarItems) and `/micuenta` (Navbar, NavbarItems) still resolve to nothing. `/productos` now exists, as does `/productos/micuenta` — the bare `/micuenta` link is probably meant to point at it.
 4. **Several dashboard pages import missing modules** (email composer, subscriptions container, ebook/program editors, `useIsAdmin` hook) — those screens will need their content designed/rebuilt, not just restyled.
-5. **No `error.tsx` / `not-found.tsx`** anywhere — error and 404 states are unstyled framework defaults; worth including in the design.
-6. **No light mode / theme toggle** — permanently dark (see §3). A light variant is net-new work.
+5. ~~No `error.tsx` / `not-found.tsx`~~ — **fixed.** `app/error.tsx`, `app/not-found.tsx` and `app/(home)/not-found.tsx` all exist; they still deserve a designed treatment.
+6. **No light mode / theme toggle** — permanently dark (see §3). A light variant is net-new work, and the platform's `theme` knob (§2.1) can ask for one.
 7. **Font inconsistency** — Montserrat only loads inside the dashboard; public pages silently fall back to Arial (see §3).
 8. **`app/globals.mockup.css` is dead code** (unimported create-next-app boilerplate) and `components.json` has stale paths — ignore both for design purposes.
 9. **Cards have no elevation** — `--card` equals `--background`, so all "cards" are border-only. The new palette should give surfaces a real elevation step.
 
 ---
 
-*Generated from repo state on 2026-07-02 (branch `master`). Source of truth for tokens: `app/globals.css`; for screens: `app/**/page.tsx`; for components: `components/**` and `app/(home)/_components/**`. Platform customization model (§2) sourced from the builder repo `next-course-ultimate`: `convex/schema.ts` (`projectAppearance`, `projectComponents`, block configs), `components/home/appearance-panel.tsx` (color/font pickers), `components/templates/template-appearance-scope.tsx` (derived ramps), `lib/templates/{atelier,studio,mono}.ts` (factory presets).*
+---
+
+## 10. Applying a customer brief
+
+The builder's admin console (`/admin/proyect/<id>` → **Export brief**) generates a `<slug>-brief.md` per customer from their stored configuration. It answers §2's tables and adds the page content and feature switches this document doesn't cover. Work through it in this order.
+
+| Brief section | Lands in | Notes |
+|---|---|---|
+| **§9 Open items** | — | **Read this first.** It lists what the customer left blank or never touched. Those are questions to ask, not blanks to fill in with your own judgement. |
+| §1 Identity | `.env.local` | Paste the `bash` block whole — every key is read by `lib/seo/site.ts`. The locale and currency lines are *inferred* from the connected payment gateway, not collected; confirm them. |
+| §3.2 Tokens | `app/globals.css` — `:root` **and** `.dark` | Paste over the 19 existing tokens. The two blocks are identical today, so paste into both. |
+| §3.2 Fonts | `app/globals.css` `@theme inline` | Add `--font-heading`, repoint `--font-sans`, and load both faces with `next/font` in `app/layout.tsx` — Montserrat is currently loaded only in the dashboard layout, so public pages fall back to Arial (§3). |
+| §3 apply-notes | `app/globals.css` `@layer base` | Swap `body { background-color: #0a0a0a }` for `hsl(var(--background))`, or the page ground stays black whatever the tokens say. The `--ep-*` palette lower in the file is separate and needs its own pass. |
+| §2.2 Variants | the ⚙ components in §5 | One variant per component — build the chosen one. §5 says which file each lives in; §6.2 lists what still hardcodes colour. |
+| §4 Pages & blocks | `app/(home)/page.tsx` + `_components/*` | `/` is still a stub (§9.1). Assemble the customer's block stack there; §5.1 lists the built-but-unused blocks available. |
+| §5 Page templates | `app/(home)/cursos/[slug]`, `/courses`, ebook pages | Section headings and FAQ copy replace the hardcoded Spanish strings listed in §8. |
+| §6 Feature switches | varies | Each switch is a *build* instruction, not a runtime flag: gamification, discount codes, subtitled video and transactional email are either wired in or left out. |
+| §6 Payments / Domain | deployment env | Credentials are deliberately **absent** from the brief. Collect them from the admin console and put them straight into the environment. |
+| §7 Assets | `public/` | Filenames match the console's "download all images" output, so the manifest and the folder line up. Add any new remote host to `next.config.ts` `images.remotePatterns`. |
+| §8 Placeholders | §8 above | The brief names the replacement for each item, and says plainly which ones the platform never collects. |
+
+**Two things the brief cannot tell you.**
+
+1. **No catalogue content.** Courses, modules and lessons live in Turso, and the builder does not model them — it stores a build brief, not a course library. There is no seed script, so the catalogue is entered through `/dashboard/*` or seeded by hand.
+2. **No social handles or icon set.** The platform never asks (§2.6). Get the handles from the customer; the iconography is a design decision, and the card and rating glyphs in §2.3 are the only fixed points.
+
+**The token names are the contract.** A design pass changes their *values*; it does not rename them. That is what lets a refreshed palette land in `app/globals.css` without every brief going stale.
+
+---
+
+*Repo state verified 2026-08-16 (§5 routes, §9 gaps 2/3/5, §8 metadata). Platform model in §2 last synced 2026-07-02. Source of truth for tokens: `app/globals.css`; for screens: `app/**/page.tsx`; for components: `components/**` and `app/(home)/_components/**`. Platform customization model (§2) sourced from the builder repo `next-course-ultimate`: `convex/schema.ts` (`projectAppearance`, `projectComponents`, block configs), `components/home/appearance-panel.tsx` (color/font pickers), `components/templates/template-appearance-scope.tsx` (derived ramps), `lib/templates/{atelier,studio,mono}.ts` (factory presets), `lib/project-brief/` (the brief generator).*

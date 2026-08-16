@@ -2,10 +2,10 @@ import { InferSelectModel, relations, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from "zod"
 import { users } from "./auth_schema";
-import { jsonb, integer, primaryKey, pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 
-export const ebook_schema = pgTable("ebook", {
+export const ebook_schema = sqliteTable("ebook", {
     id: text('id',).primaryKey().notNull(),
     title: text('title').notNull(),
     description: text('description').notNull(),
@@ -14,8 +14,10 @@ export const ebook_schema = pgTable("ebook", {
     img_url: text("img_url").notNull(),
     pdf_url: text("pdf_url").notNull(),
     card_color: text('card_color').notNull(),
-    stats_values: jsonb("stats_values").notNull().$type<StatsValuesType>(),
-    stats_names: jsonb("stats_names").notNull().$type<StatsNameType>()
+    // JSON as text rather than blob: identical TypeScript type, but readable in
+    // `turso db shell` and Drizzle Studio instead of an opaque byte string.
+    stats_values: text("stats_values", { mode: 'json' }).notNull().$type<StatsValuesType>(),
+    stats_names: text("stats_names", { mode: 'json' }).notNull().$type<StatsNameType>()
 
 })
 export const ebookRelations = relations(ebook_schema, ({ many }) => ({
@@ -23,10 +25,10 @@ export const ebookRelations = relations(ebook_schema, ({ many }) => ({
 }))
 
 
-export const payment_schema_ebook = pgTable("payment_ebook", {
+export const payment_schema_ebook = sqliteTable("payment_ebook", {
     id: integer("id").primaryKey().notNull(),
     item_title: text('item_title').notNull(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     net_amount: integer('net_amount').notNull(),
     payerName: text('payer_name'),
     payer_email: text("payer_email"),
@@ -39,12 +41,12 @@ export const payment_relation = relations(payment_schema_ebook, ({ many }) => ({
 }))
 
 
-export const payments_on_users_ebooks = pgTable("payment_on_users_ebooks", {
+export const payments_on_users_ebooks = sqliteTable("payment_on_users_ebooks", {
     ebook_id: text("ebook_id",).notNull(),
     user_id: text('user_id',).notNull(),
     payment_id: integer('payment_id').notNull(),
     // See the note on usersToCourses.created_at — same backfill caveat.
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 
 }, (table) => ({ pk: primaryKey({ columns: [table.ebook_id, table.user_id, table.payment_id] }) }))
 

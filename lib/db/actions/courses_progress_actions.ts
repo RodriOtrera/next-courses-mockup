@@ -7,7 +7,7 @@ import { CourseModuleInfo, CourseProgressSelect, course_progress } from "../sche
 import { ModuleNavigationI } from "@/components/module/ModuleNavigation";
 import { getModulesOfCourse } from "./edit/modules_actions";
 import { users } from "../schema/auth_schema";
-import { sendMailCourseProgress } from "@/app/api/email/send_email";
+import { sendCourseProgressEmail } from "@/lib/email/transactional";
 import { getCourseAndModule } from "./courses/course_and_module";
 import { auth } from "@/lib/auth";
 import { captureServer } from "@/lib/analytics/server";
@@ -65,10 +65,10 @@ export async function setNextModuleProgress(navigationTimeline: ModuleNavigation
 
     if ((max_progress != null && max_progress < arriveProgress && max_progress < 25) && arriveProgress >= 25 && arriveProgress < 50) {
         console.log('Should send email for progress at 25%')
-        await sendMailCourseProgress({
-            sendTo: navigationTimeline.user_email,
-            course_title: navigationTimeline.course_title,
-            course_completion: 25,
+        await sendCourseProgressEmail({
+            to: navigationTimeline.user_email,
+            courseTitle: navigationTimeline.course_title,
+            milestone: 25,
         })
         await captureServer("progress_milestone_reached", navigationTimeline.user_id, {
             course_id,
@@ -79,10 +79,10 @@ export async function setNextModuleProgress(navigationTimeline: ModuleNavigation
 
     if ((max_progress != null && max_progress < arriveProgress && max_progress < 50) && arriveProgress >= 50 && arriveProgress < 75) {
         console.log('Should send email for progress at 50%')
-        await sendMailCourseProgress({
-            sendTo: navigationTimeline.user_email, course_title: navigationTimeline.course_title,
-
-            course_completion: 50,
+        await sendCourseProgressEmail({
+            to: navigationTimeline.user_email,
+            courseTitle: navigationTimeline.course_title,
+            milestone: 50,
         })
         await captureServer("progress_milestone_reached", navigationTimeline.user_id, {
             course_id,
@@ -90,10 +90,10 @@ export async function setNextModuleProgress(navigationTimeline: ModuleNavigation
         });
     }
     if ((max_progress != null && max_progress < arriveProgress && max_progress < 75) && arriveProgress >= 75) {
-        await sendMailCourseProgress({
-            sendTo: navigationTimeline.user_email,
-            course_completion: 75, course_title: navigationTimeline.course_title,
-
+        await sendCourseProgressEmail({
+            to: navigationTimeline.user_email,
+            courseTitle: navigationTimeline.course_title,
+            milestone: 75,
         })
         console.log('Should send email for progress at 75%')
         await captureServer("progress_milestone_reached", navigationTimeline.user_id, {

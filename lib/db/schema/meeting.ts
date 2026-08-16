@@ -1,12 +1,12 @@
 import {  InferSelectModel, sql } from "drizzle-orm";
-import { pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 
 export const meeting_schema =
-    pgTable("meeting", {
+    sqliteTable("meeting", {
         id: text('id').default("noID").primaryKey(),
         link: text('link'),
-        updatedAt: timestamp('updatedAt').defaultNow() //ON UPDATE NOW
+        updatedAt: integer('updatedAt', { mode: 'timestamp' }).default(sql`(unixepoch())`) //ON UPDATE NOW
     })
 
 

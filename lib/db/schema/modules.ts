@@ -2,14 +2,14 @@ import { relations, sql } from "drizzle-orm";
 import { courses } from "./course";
 import { createSelectSchema } from "drizzle-zod";
 import z from 'zod';
-import { pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { modules_items } from "./modules_items";
-    
-export const modules = pgTable('modules', {
+
+export const modules = sqliteTable('modules', {
     id: text('id').primaryKey(),
     title: text('text').notNull(),
     course_id: text('course_id').notNull(),
-    createdAt: timestamp("createdAt").defaultNow(),
+    createdAt: integer("createdAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
 
 
 })

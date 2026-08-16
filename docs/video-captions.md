@@ -4,7 +4,7 @@ A lesson video uploaded to Mux gets subtitles in its spoken language for free,
 optional AI translations into the other offered languages, and a description
 written from the resulting transcript. Ported from the Convex implementation in
 `next-course-ultimate`; the differences are all consequences of this project
-having Postgres and Next.js where that one has Convex.
+having Turso (libSQL/SQLite) and Next.js where that one has Convex.
 
 ## TL;DR
 
@@ -55,8 +55,8 @@ Because both drive the same function, three properties are load-bearing:
   to carry. Timeouts are wall-clock deadlines measured from `created_at`, not
   attempt counts — an advance can arrive 5 seconds or 60 seconds after the last
   one, so "how many times have we looked" says nothing about how long we waited.
-- **The unique index is the concurrency primitive.** The Neon HTTP driver has no
-  transactions. `video_tracks_item_language_idx` plus the compare-and-set in
+- **The unique index is the concurrency primitive.** The libSQL remote client has
+  no interactive transactions. `video_tracks_item_language_idx` plus the compare-and-set in
   `startTranslations` (`UPDATE ... WHERE status = 'pending' RETURNING id`) is
   what stops a browser poll and a cron tick from opening — and paying for — the
   same Robots job twice.
@@ -93,7 +93,7 @@ modules_items
   caption_source_language        what the uploader declared: a code, or "auto"
   caption_detected_language      what ASR actually found
   caption_detected_confidence    Mux's 0-1, only when auto-detect ran
-  caption_targets                text[] of translation targets
+  caption_targets                JSON array of translation targets
   description_attempts           retry budget for Gemini
   description_attempted_at       for the exponential backoff
   transcription                  the ASR transcript (already existed)
@@ -105,7 +105,7 @@ video_tracks                     one row per subtitle track
 
 The transcript stays on `modules_items` rather than getting its own table.
 Convex needed the split because `listMyVideos` takes 50 rows and a two-hour
-transcript is ~120 KB, which would blow the per-transaction read limit; Postgres
+transcript is ~120 KB, which would blow the per-transaction read limit; SQLite
 has no such limit, and the column already existed.
 
 Nothing in the schema gates the player. A lesson is playable the whole time its
@@ -260,7 +260,9 @@ fail: ASR, playback, the transcript and the description all still work.
 
 ## Deploying
 
-1. Apply the migration: `npm run db:apply drizzle/0004_caption_tracks.sql`
+1. Apply the schema: `npm run db:migrate` (these tables are part of the SQLite
+   baseline in `drizzle/`; the old Postgres migration lives in
+   `drizzle/_postgres_archive/0004_caption_tracks.sql`)
 2. `vercel.json` registers the cron. On any other host, hit
    `GET /api/cron/captions` every minute with the bearer token.
 

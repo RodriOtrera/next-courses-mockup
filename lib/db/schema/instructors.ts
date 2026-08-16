@@ -2,9 +2,9 @@ import { relations } from "drizzle-orm";
 import { courses } from "./course";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from 'zod';
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const instructors = pgTable('instructors', {
+export const instructors = sqliteTable('instructors', {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     instagram: text('instagram').notNull(),

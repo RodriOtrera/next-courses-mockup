@@ -40,12 +40,13 @@ const NO_AWARD = (totalXp: number): XpAwardResult => {
 /** Lifetime XP across every course. Summed from the ledger — never denormalised. */
 export async function getUserXp(user_id: string): Promise<number> {
     const rows = await db
-        .select({ total: sql<string>`coalesce(sum(${xp_ledger.amount}), 0)` })
+        .select({ total: sql<number>`coalesce(sum(${xp_ledger.amount}), 0)` })
         .from(xp_ledger)
         .where(eq(xp_ledger.user_id, user_id));
 
-    // Postgres SUM() comes back as a bigint, which the driver hands over as a
-    // string — Number() here, not before.
+    // SQLite hands SUM() back as a number, but the coercion is kept: the column
+    // is typed by the `sql<>` annotation, not by the driver, so a wrong
+    // annotation would otherwise leak a non-number into the level maths.
     return Number(rows[0]?.total ?? 0);
 }
 

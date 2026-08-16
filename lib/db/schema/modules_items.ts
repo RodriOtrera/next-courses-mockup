@@ -6,13 +6,13 @@ import { modules } from "./modules";
 import { ExtractModified } from "@/lib/types/extract_modified";
 import { questionary } from "./questionary_or_exam";
 import { video_tracks } from "./video_tracks";
-import { integer, pgTable, real, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const moduleValues = ['questionario', 'pdf', 'video'] as const;
 const moduleType = z.enum(moduleValues);
 export type ModuleEnums = z.infer<typeof moduleType>;
 
-export const modules_items = pgTable('modules_items', {
+export const modules_items = sqliteTable('modules_items', {
     id: text('id').primaryKey(),
     position: integer('position').notNull(),
     title: text('title').notNull(),
@@ -38,15 +38,21 @@ export const modules_items = pgTable('modules_items', {
     caption_detected_language: text('caption_detected_language'),
     /** Mux's 0-1 confidence. Only present when auto-detection was used. */
     caption_detected_confidence: real('caption_detected_confidence'),
-    /** Translation targets chosen at upload. Capped at MAX_TARGET_LANGUAGES. */
-    caption_targets: text('caption_targets').array(),
+    /**
+     * Translation targets chosen at upload. Capped at MAX_TARGET_LANGUAGES.
+     *
+     * SQLite has no array type, so this is a JSON array in a text column. The
+     * TypeScript type is still `string[] | null`, which is why every reader and
+     * writer of this column is unchanged from the Postgres version.
+     */
+    caption_targets: text('caption_targets', { mode: 'json' }).$type<string[]>(),
     /**
      * Retry budget for the AI description, persisted for the same reason
      * `video_tracks.attempts` is: there is no scheduler chain to carry it.
      */
     description_attempts: integer('description_attempts').notNull().default(0),
     /** When the last description attempt ran, for the exponential backoff. */
-    description_attempted_at: timestamp('description_attempted_at'),
+    description_attempted_at: integer('description_attempted_at', { mode: 'timestamp' }),
 
 })
 

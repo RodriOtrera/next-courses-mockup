@@ -1,9 +1,9 @@
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import schema from "./schema";
 
 type Schema = typeof schema;
-type Db = NeonHttpDatabase<Schema>;
+type Db = LibSQLDatabase<Schema>;
 
 let _db: Db | undefined;
 
@@ -15,7 +15,10 @@ function getDb(): Db {
         "DATABASE_URL is not set. Copy .env.local.example to .env.local and fill in values.",
       );
     }
-    _db = drizzle(neon(url), { schema });
+    _db = drizzle(
+      createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN }),
+      { schema },
+    );
   }
   return _db;
 }

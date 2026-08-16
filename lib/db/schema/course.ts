@@ -1,6 +1,6 @@
-import { InferSelectModel, relations } from "drizzle-orm";
+import { InferSelectModel, relations, sql } from "drizzle-orm";
 import { usersToCourses } from "./users_to_courses";
-import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { testimonials } from "./testimonials";
 import { modules } from "./modules";
 import { payment_schema } from "./payment_schema";
@@ -11,12 +11,12 @@ import { exams } from "./questionary_or_exam";
 import { frequentlyAskedQuestions } from "./frequently_asked_questions";
 
 
-export const courses = pgTable('courses', {
+export const courses = sqliteTable('courses', {
     id: text('id').primaryKey(),
     title: text('title').notNull(),
     price: integer('price').default(0).notNull(),
     price_usd: integer('price_usd').default(0).notNull(),
-    is_public: boolean('public').default(false).notNull(),
+    is_public: integer('public', { mode: 'boolean' }).default(false).notNull(),
     introductory_video: text('introductory_video'),
     beneficios: text('beneficios').default("").notNull(),
     descripcion: text('descripcion').default("").notNull(),
@@ -39,12 +39,12 @@ export const courses = pgTable('courses', {
     // regeneration on this rather than on current `is_public` matters:
     // unpublish → edit title → republish is an ordinary admin workflow, and
     // reading `is_public` would silently unfreeze an already-indexed URL.
-    slug_locked: boolean('slug_locked').default(false).notNull(),
+    slug_locked: integer('slug_locked', { mode: 'boolean' }).default(false).notNull(),
 
     // Honest `lastModified` for the sitemap. Without it the only options are
     // omitting the field or emitting `new Date()`, and Google discounts
     // sitemaps whose lastmod it learns not to trust.
-    updated_at: timestamp('updated_at').defaultNow(),
+    updated_at: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 })
 
 

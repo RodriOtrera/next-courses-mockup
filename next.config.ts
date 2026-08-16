@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// No `serverExternalPackages` entry for the database driver: Next already ships
+// both `@libsql/client` and its native `libsql` addon in its built-in list
+// (`next/dist/lib/server-external-packages.jsonc`), so adding only the former
+// here would be redundant and misleadingly incomplete.
 const nextConfig: NextConfig = {
   // PostHog ingestion is proxied through our own origin so ad-blockers (common
   // in the LATAM consumer market this sells to) can't silently delete the

@@ -13,7 +13,7 @@ export const programs_query = db.query.program_schema.findMany({
         pdf_url: false,
         price_usd: true,
     }
-}).prepare("programs_query");
+}).prepare();
 
 export const ebook_query = db.query.ebook_schema.findMany({
     columns: {
@@ -27,7 +27,7 @@ export const ebook_query = db.query.ebook_schema.findMany({
         stats_values: true,
         price_usd: true
     }
-}).prepare("ebooks_query")
+}).prepare()
 
 export const my_ebooks_query = (user_id: string) => db.query.payments_on_users_ebooks.findMany({
     where: eq(payments_on_users_ebooks.user_id, user_id),
@@ -46,10 +46,10 @@ export const my_ebooks_query = (user_id: string) => db.query.payments_on_users_e
             }
         }
     }
-}).prepare("my_ebooks_query")
+}).prepare()
 
 export const my_programs_query = (user_id: string) =>
     db.query.payments_on_users_program.findMany({
         where: eq(payments_on_users_program.user_id, user_id),
         with: { program: true }
-    }).prepare("my_programs_query")
+    }).prepare()

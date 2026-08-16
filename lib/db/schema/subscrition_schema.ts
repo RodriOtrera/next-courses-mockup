@@ -1,18 +1,18 @@
 import { relations, sql, type InferSelectModel } from "drizzle-orm";
 // import { users } from "./auth_schema";
-import { boolean, jsonb, integer, pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { users } from "./auth_schema";
 import { coachings } from "./coachings";
 
-export const subscription = pgTable('subscriptions', ({
+export const subscription = sqliteTable('subscriptions', ({
     id: text("id",).notNull().primaryKey(),
     mercadopagoId: integer('mercadopago_id',).notNull(),
     userId: text('user_id',).notNull(),
     paidPrice: text('paid_price',),
-    active: boolean('active').default(false),
-    createdAt: timestamp("createdAt").defaultNow(),
-    updatedAt: timestamp("updatedAt").defaultNow(),
+    active: integer('active', { mode: 'boolean' }).default(false),
+    createdAt: integer("createdAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updatedAt: integer("updatedAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
     coaching_id: text('coaching_id'),
 
 

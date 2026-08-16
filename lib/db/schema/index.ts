@@ -23,6 +23,7 @@ import * as home_testimonials from "./home_testimonials";
 import * as coachings from "./coachings";
 import * as payment_log_schema from "./payment_log_schema";
 import * as gamification from "./gamification";
+import * as email_consent from "./email_consent";
 
 export * from "./auth_schema";
 export * from "./ebook_schema";
@@ -54,6 +55,7 @@ export * from "./home_testimonials";
 export * from "./coachings";
 export * from "./payment_log_schema";
 export * from "./gamification";
+export * from "./email_consent";
 
 // The user table is exported twice (`user` and the `users` alias). Registering
 // the same physical table under two keys leaves one key with empty relations,
@@ -86,6 +88,7 @@ const schema = {
   ...modules_items,
   ...video_tracks,
   ...gamification,
+  ...email_consent,
 };
 
 export default schema;

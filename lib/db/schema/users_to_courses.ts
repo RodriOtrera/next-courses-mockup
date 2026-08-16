@@ -1,17 +1,17 @@
 
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { users } from "./auth_schema";
 import { courses } from "./course";
-import { primaryKey, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const usersToCourses = pgTable('usersToCourses', {
+export const usersToCourses = sqliteTable('usersToCourses', {
     user_id: text('user_id').notNull(),
     course_id: text('course_id').notNull(),
     // Without this there is no way to know when anyone enrolled, which makes
     // time-to-activation and cohort retention unanswerable. Rows that existed
     // before this column was added are backfilled to the migration timestamp,
     // so treat any enrollment dated at/near that moment as unknown, not real.
-    created_at: timestamp('created_at').defaultNow()
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`)
 }, (t) => ({
     pk: primaryKey({ columns: [t.user_id, t.course_id] })
 }))

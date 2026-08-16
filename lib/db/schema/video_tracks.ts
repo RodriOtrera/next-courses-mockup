@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm";
-import { index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from "zod";
 import { modules_items } from "./modules_items";
@@ -29,7 +29,7 @@ export const TERMINAL_TRACK_STATUSES: readonly TrackStatus[] = ['ready', 'errore
  * translate in parallel, each finishing whenever it finishes. One row per track
  * means an advance step writes exactly the rows that moved.
  */
-export const video_tracks = pgTable("video_tracks", {
+export const video_tracks = sqliteTable("video_tracks", {
     id: text('id').primaryKey(),
     module_item_id: text('module_item_id')
         .notNull()
@@ -52,13 +52,13 @@ export const video_tracks = pgTable("video_tracks", {
     attempts: integer('attempts').notNull().default(0),
     /** Failure text, or the reason a `skipped` row was skipped. */
     error_message: text('error_message'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+    updated_at: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 }, (t) => ({
     // One track per language per lesson. Without this, a double-fired advance
     // could open a second Robots job for a language already in flight — and
-    // pay for it. The Neon HTTP driver has no transactions, so a unique index
-    // is the only concurrency primitive available.
+    // pay for it. The libSQL remote client has no interactive transactions, so
+    // a unique index is the only concurrency primitive available.
     perLanguage: uniqueIndex('video_tracks_item_language_idx').on(t.module_item_id, t.kind, t.language_code),
     byItem: index('video_tracks_item_idx').on(t.module_item_id),
     byStatus: index('video_tracks_status_idx').on(t.status),

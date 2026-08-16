@@ -5,10 +5,10 @@
  * per client, so "point at a client's existing database and assign slugs" is a
  * step in the deployment runbook. Written to be safely re-runnable.
  *
- * Why a script rather than SQL: a PL/pgSQL implementation would need the
- * `unaccent` extension installed on every client's Neon project and would be a
- * second copy of the algorithm in `lib/utils/slug.ts` — guaranteed to drift.
- * Reusing slugify() keeps one source of truth.
+ * Why a script rather than SQL: SQLite has no accent-folding of its own, so a
+ * pure-SQL implementation would be a second copy of the algorithm in
+ * `lib/utils/slug.ts` — guaranteed to drift. Reusing slugify() keeps one source
+ * of truth.
  *
  * Why not lazy-on-read: the sitemap and the statically-prerendered /courses
  * list need slugs to exist *before* a crawler arrives. Generating them on first
@@ -18,7 +18,7 @@
  *   npm run db:backfill-slugs            # dry run, prints the plan
  *   npm run db:backfill-slugs -- --apply # writes
  */
-import { neon } from "@neondatabase/serverless";
+import { createClient } from "@libsql/client";
 import { slugify, uniqueSlug } from "../lib/utils/slug.ts";
 
 const apply = process.argv.includes("--apply");
@@ -28,16 +28,16 @@ if (!url) {
     console.error("DATABASE_URL is not set");
     process.exit(1);
 }
-const sql = neon(url);
+const client = createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN });
 
 type Row = { id: string; title: string; slug: string | null };
 
 // ORDER BY id is load-bearing: it makes suffix assignment (-2 vs -3)
 // deterministic, so staging and production derive identical URLs for the same
 // set of courses. Non-deterministic ordering would silently diverge them.
-const rows = (await sql`
-    SELECT id, title, slug FROM courses ORDER BY id
-`) as Row[];
+const rows = (await client.execute(
+    "SELECT id, title, slug FROM courses ORDER BY id",
+)).rows as unknown as Row[];
 
 const taken = new Set(rows.map((r) => r.slug).filter((s): s is string => !!s));
 const pending = rows.filter((r) => !r.slug);
@@ -54,8 +54,11 @@ if (pending.length === 0) {
 
 const isTaken = async (candidate: string) => {
     if (taken.has(candidate)) return true;
-    const hit = await sql`SELECT 1 FROM courses WHERE slug = ${candidate} LIMIT 1`;
-    return hit.length > 0;
+    const hit = await client.execute({
+        sql: "SELECT 1 FROM courses WHERE slug = ? LIMIT 1",
+        args: [candidate],
+    });
+    return hit.rows.length > 0;
 };
 
 let written = 0;
@@ -79,11 +82,11 @@ for (const row of pending) {
     try {
         // `AND slug IS NULL` is what makes re-runs safe — if a concurrent run
         // already assigned one, we must not clobber what may be a live URL.
-        const res = await sql`
-            UPDATE courses SET slug = ${slug} WHERE id = ${row.id} AND slug IS NULL
-            RETURNING slug
-        `;
-        if (res.length === 0) {
+        const res = await client.execute({
+            sql: "UPDATE courses SET slug = ? WHERE id = ? AND slug IS NULL RETURNING slug",
+            args: [slug, row.id],
+        });
+        if (res.rows.length === 0) {
             raced++;
             taken.delete(slug);
             console.log(`  · ${label}\n    already had a slug — skipped`);
@@ -93,14 +96,15 @@ for (const row of pending) {
         console.log(`  ✓ ${label}\n    -> ${slug}`);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        // 23505: the unique constraint is the real arbiter. With no
-        // transactions there is a TOCTOU window between the probe and the
-        // write; the id-derived suffix cannot collide, so one retry suffices.
-        if (/duplicate key|23505/i.test(message)) {
+        // The unique index is the real arbiter. With no transactions there is a
+        // TOCTOU window between the probe and the write; the id-derived suffix
+        // cannot collide, so one retry suffices.
+        if (/UNIQUE constraint failed|duplicate key|23505/i.test(message)) {
             const fallback = `${slugify(row.title)}-${row.id.slice(0, 8)}`;
-            await sql`
-                UPDATE courses SET slug = ${fallback} WHERE id = ${row.id} AND slug IS NULL
-            `;
+            await client.execute({
+                sql: "UPDATE courses SET slug = ? WHERE id = ? AND slug IS NULL",
+                args: [fallback, row.id],
+            });
             taken.add(fallback);
             written++;
             console.log(`  ✓ ${label}\n    -> ${fallback}  (collision fallback)`);
@@ -116,9 +120,9 @@ if (!apply) {
     process.exit(0);
 }
 
-const [{ count }] = (await sql`
-    SELECT count(*)::int AS count FROM courses WHERE slug IS NULL
-`) as [{ count: number }];
+const [{ count }] = (await client.execute(
+    "SELECT count(*) AS count FROM courses WHERE slug IS NULL",
+)).rows as unknown as [{ count: number }];
 
 console.log(`\n${written} written, ${raced} skipped. ${count} row(s) still without a slug.`);
 

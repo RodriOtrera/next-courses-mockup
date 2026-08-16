@@ -89,10 +89,11 @@ function randomSuffix(): string {
  * every keyword, whereas `entrenamiento-calistenia-a3f9k1` reads as machine
  * output and burns URL real estate.
  *
- * This probe loop is best-effort only. The `courses_slug_unique` constraint is
- * the actual arbiter — the Neon HTTP driver has no transactions, so there is a
- * genuine TOCTOU window between "is it taken?" and the write. Callers must
- * catch Postgres 23505 and retry with an id-derived suffix, which cannot collide.
+ * This probe loop is best-effort only. The `courses_slug_unique` index is the
+ * actual arbiter — the libSQL remote client has no interactive transactions, so
+ * there is a genuine TOCTOU window between "is it taken?" and the write. Callers
+ * must catch the UNIQUE-constraint failure and retry with an id-derived suffix,
+ * which cannot collide.
  */
 export async function uniqueSlug(
     title: string,

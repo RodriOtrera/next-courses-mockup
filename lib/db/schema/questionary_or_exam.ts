@@ -3,9 +3,9 @@ import { courses } from "./course";
 
 import z from 'zod';
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { boolean, integer, pgTable, text } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const exams = pgTable("exams", {
+export const exams = sqliteTable("exams", {
     id: text('id').primaryKey(),
     course_id: text('course_id').notNull(),
     last_time_done: text('last_time_done'),
@@ -14,7 +14,7 @@ export const exams = pgTable("exams", {
 
 
 
-export const questionary = pgTable("questionary", {
+export const questionary = sqliteTable("questionary", {
     id: text('id').primaryKey(),
     module_item_id: text("module_item_id").notNull()
 })
@@ -38,7 +38,7 @@ export const exams_relations = relations(exams, ({ one, many }) => ({
 }))
 
 
-export const questions = pgTable("questions", {
+export const questions = sqliteTable("questions", {
     id: text('id').primaryKey(),
     exam_id: text('exam_id'),
     title: text('title').notNull(),
@@ -62,11 +62,11 @@ export const questions_relations = relations(questions, ({ one, many }) => ({
 }))
 
 
-export const options = pgTable("options", {
+export const options = sqliteTable("options", {
     id: text('id').primaryKey(),
     question_id: text('question_id').notNull(),
     title: text('title').notNull(),
-    isCorrect: boolean('isCorrect').default(false).notNull()
+    isCorrect: integer('isCorrect', { mode: 'boolean' }).default(false).notNull()
 })
 
 export const options_relations = relations(options, ({ one }) => ({

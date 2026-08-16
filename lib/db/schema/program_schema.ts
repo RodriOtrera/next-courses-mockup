@@ -2,10 +2,10 @@ import { type InferSelectModel, relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import z from "zod"
 import { users } from "./auth_schema";
-import { integer, primaryKey, pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 
-export const program_schema = pgTable("programs", {
+export const program_schema = sqliteTable("programs", {
     id: text('id').primaryKey().notNull(),
     title: text('title').notNull(),
     description: text('description').notNull(),
@@ -19,10 +19,10 @@ export const programRelations = relations(program_schema, ({ many }) => ({
 }))
 
 
-export const payment_schema_program = pgTable("payment_program", {
+export const payment_schema_program = sqliteTable("payment_program", {
     id: integer('payment_id').primaryKey().notNull(),
     item_title: text('item_title').notNull(),
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
     net_amount: integer('net_amount').notNull(),
     payerName: text('payer_name'),
     payer_email: text("payer_email"),
@@ -34,12 +34,12 @@ export const payment_relation_program = relations(payment_schema_program, ({ man
 }))
 
 
-export const payments_on_users_program = pgTable("payment_on_users_program", {
+export const payments_on_users_program = sqliteTable("payment_on_users_program", {
     program_id: text("program_id").notNull(),
     user_id: text('user_id').notNull(),
     payment_id: integer('payment_id').notNull(),
     // See the note on usersToCourses.created_at — same backfill caveat.
-    created_at: timestamp('created_at').defaultNow(),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 
 }, (table) => ({ pk: primaryKey({ columns: [table.program_id, table.user_id, table.payment_id] }) }))
 

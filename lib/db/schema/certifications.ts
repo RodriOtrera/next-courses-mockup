@@ -1,12 +1,12 @@
 import { relations, sql } from "drizzle-orm";
 import { courses } from "./course";
 import { createInsertSchema } from "drizzle-zod";
-import { pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { users } from "./auth_schema";
 
-export const certifications = pgTable("certifications", {
+export const certifications = sqliteTable("certifications", {
     id: text('id').primaryKey(),
-    created_at:  timestamp("createdAt").defaultNow(),
+    created_at:  integer("createdAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
     user_id: text("user_id").notNull(),
     course_id: text('course_id').notNull()
 })

@@ -2,13 +2,13 @@ import { relations, sql } from "drizzle-orm"
 import { courses } from "./course"
 import { createInsertSchema } from "drizzle-zod"
 import z from 'zod';
-import { integer, pgTable, text , timestamp} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { users } from "./auth_schema";
 
-export const payment_schema = pgTable("payment_schema", {
+export const payment_schema = sqliteTable("payment_schema", {
     id: integer("id").primaryKey(),
     item_title: text('item_title').notNull(),
-    created_at: timestamp("createdAt").defaultNow(),
+    created_at: integer("createdAt", { mode: 'timestamp' }).default(sql`(unixepoch())`),
     net_amount: integer('net_amount').notNull(),
     payerName: text('payer_name'),
     payer_email: text("payer_email"),

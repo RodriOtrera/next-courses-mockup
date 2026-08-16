@@ -3,9 +3,9 @@ import { courses } from "./course";
 import { createSelectSchema } from "drizzle-zod";
 import z from 'zod';
 import { users } from "./auth_schema";
-import { real, pgTable, text } from "drizzle-orm/pg-core";
+import { real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const testimonials = pgTable('testimonials', {
+export const testimonials = sqliteTable('testimonials', {
     id: text('id').primaryKey(),
     rating: real('rating').notNull(),
     course_id: text('course_id').notNull(),
