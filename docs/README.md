@@ -9,3 +9,4 @@ Project documentation lives here.
 - [PayPal integration](./paypal.md) — how checkout works against the PayPal Orders v2 REST API.
 - [Analytics (PostHog)](./analytics.md) — server-first event tracking, the typed event taxonomy, the redirect/idempotency traps, and the dashboard's read path.
 - [Video captions](./video-captions.md) — Mux ASR, translation, and how caption tracks reach the player.
+- [Internationalization (next-intl)](./internationalization.md) — the build instruction for the multi-language switch: what a locale segment costs, the `proxy.ts` composition that keeps the auth guard working, and every surface that hardcodes Spanish or `es-AR`.
